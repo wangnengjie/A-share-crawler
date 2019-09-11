@@ -10,10 +10,14 @@ import (
 	"time"
 )
 
-func Request(id string, prefix string, out chan<- StockMsg) {
-	pre := ""
+func Request(ids []string, prefix string, out chan<- StockMsg) {
+	pre := make([]string, len(ids))
+	url := ""
+	for _, id := range ids {
+		url += "," + prefix + id
+	}
 	for ; ; time.Sleep(1 * time.Second) {
-		resp, err := http.Get("http://hq.sinajs.cn/list=" + prefix + id)
+		resp, err := http.Get("http://hq.sinajs.cn/list=" + url[1:])
 
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "request error %s", err)
@@ -26,10 +30,15 @@ func Request(id string, prefix string, out chan<- StockMsg) {
 			continue
 		}
 
-		msg := string(data)
-		if msg != pre {
-			pre = msg
-			out <- getStockMsg(msg, id)
+		msgs := strings.Split(string(data), "\n")
+
+		for index, msg := range msgs[:len(msgs)-1] {
+			go func(index int, s string) {
+				if s != pre[index] {
+					pre[index] = s
+					out <- getStockMsg(s, ids[index])
+				}
+			}(index, msg)
 		}
 	}
 }

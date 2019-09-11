@@ -22,7 +22,7 @@ func (v StockMsgs) Less(i, j int) bool {
 }
 
 func WriteFile(in <-chan StockMsgs) {
-	f, err := os.Create("./data/" + time.Now().Format("2006-01-02_15:04:05") + ".csv")
+	f, err := os.Create("./data/" + time.Now().Format("2006-01-02_15-04-05") + ".csv")
 	defer f.Close()
 	if err != nil {
 		fmt.Print(err)
@@ -32,7 +32,7 @@ func WriteFile(in <-chan StockMsgs) {
 	writer := csv.NewWriter(f)
 	defer writer.Flush()
 
-	ticker := time.NewTicker(45 * time.Second)
+	ticker := time.NewTicker(15 * time.Minute)
 	for {
 		select {
 		case datas := <-in:
@@ -40,7 +40,7 @@ func WriteFile(in <-chan StockMsgs) {
 		case <-ticker.C:
 			f.Close()
 			writer.Flush()
-			f, err = os.Create("../data/" + time.Now().Format("2006-01-02_15:04:05") + ".csv")
+			f, err = os.Create("./data/" + time.Now().Format("2006-01-02_15-04-05") + ".csv")
 			writer = csv.NewWriter(f)
 		}
 	}
