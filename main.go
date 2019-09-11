@@ -1,20 +1,24 @@
 package main
 
 import (
-	"fmt"
 	"github.com/wangnengjie/A-share-spider/modules"
 )
 
-const n = 50
-
 func main() {
-	sh := modules.ReadID("./stockid/sh", "sh")
-	sz := modules.ReadID("./stockid/sz", "sz")
+	sh := modules.ReadID("./stockid/sh")
+	sz := modules.ReadID("./stockid/sz")
 
 	// update > collect > writer
-	update := make(chan modules.StockMsg, 1000)
-	collect := make(chan []modules.StockMsg, 10)
+	update := make(chan modules.StockMsg, 50)
+	collect := make(chan modules.StockMsgs, 10)
 
-	go modules.WriteFile(collect)
-	
+	for _, id := range sh {
+		go modules.Request(id, "sh", update)
+	}
+	for _, id := range sz {
+		go modules.Request(id, "sz", update)
+	}
+	go modules.CollectMsg(update, collect)
+
+	modules.WriteFile(collect)
 }
