@@ -36,7 +36,11 @@ func Request(ids []string, prefix string, out chan<- StockMsg) {
 			go func(index int, s string) {
 				if s != pre[index] {
 					pre[index] = s
-					out <- getStockMsg(s, ids[index])
+					m := getStockMsg(s, ids[index])
+					if m[1] == "0.000" {
+						return
+					}
+					out <- m
 				}
 			}(index, msg)
 		}

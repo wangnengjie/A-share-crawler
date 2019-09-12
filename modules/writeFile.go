@@ -21,18 +21,34 @@ func (v StockMsgs) Less(i, j int) bool {
 	return p < q
 }
 
-func WriteFile(in <-chan StockMsgs) {
+func WriteFile(in <-chan StockMsgs, t *int) {
+	exist, err := pathExists("./data")
+
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%s", err)
+		return
+	}
+
+	if !exist {
+		err := os.Mkdir("./data", os.ModePerm)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "%s", err)
+		} else {
+			fmt.Println("mkdir ./data")
+		}
+	}
+
 	f, err := os.Create("./data/" + time.Now().Format("2006-01-02_15-04-05") + ".csv")
 	defer f.Close()
 	if err != nil {
-		fmt.Print(err)
-		os.Exit(1)
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(2)
 	}
 
 	writer := csv.NewWriter(f)
 	defer writer.Flush()
 
-	ticker := time.NewTicker(15 * time.Minute)
+	ticker := time.NewTicker(time.Duration(*t) * time.Minute)
 	for {
 		select {
 		case datas := <-in:
@@ -44,4 +60,15 @@ func WriteFile(in <-chan StockMsgs) {
 			writer = csv.NewWriter(f)
 		}
 	}
+}
+
+func pathExists(path string) (bool, error) {
+	_, err := os.Stat(path)
+	if err == nil {
+		return true, nil
+	}
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+	return false, err
 }
