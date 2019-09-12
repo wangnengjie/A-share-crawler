@@ -49,7 +49,7 @@ func getStockMsg(s string, id string) StockMsg {
 		id,
 		slice[3],
 		slice[8],
-		strconv.FormatInt(getTime(&slice[30], &slice[31])/1000, 10),
+		strconv.FormatInt(getTime(&slice[30], &slice[31]), 10),
 	}
 }
 
