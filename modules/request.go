@@ -4,29 +4,32 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"os"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
-func Request(ids []string, prefix string, out chan<- StockMsg) {
-	pre := make([]string, len(ids))
+func Request(ids []string, idMap *sync.Map, out chan<- StockMsg) {
 	url := ""
 	for _, id := range ids {
-		url += "," + prefix + id
+		url += id + ","
 	}
 	for ; ; time.Sleep(1 * time.Second) {
-		resp, err := http.Get("http://hq.sinajs.cn/list=" + url[1:])
+		if !GetOpenState() {
+			return
+		}
+
+		resp, err := http.Get("http://hq.sinajs.cn/list=" + url)
 
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "request error %s", err)
+			LogError(err.Error())
 			continue
 		}
 		data, err := ioutil.ReadAll(resp.Body)
 		resp.Body.Close()
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "fetch: reading %s", err)
+			LogError(err.Error())
 			continue
 		}
 
@@ -34,10 +37,14 @@ func Request(ids []string, prefix string, out chan<- StockMsg) {
 
 		for index, msg := range msgs[:len(msgs)-1] {
 			go func(index int, s string) {
-				if s != pre[index] {
-					pre[index] = s
+				pre, _ := idMap.Load(ids[index])
+				if pre != nil && s != pre {
+					idMap.Store(ids[index], s)
 					m := getStockMsg(s, ids[index])
 					if m[1] == "0.000" {
+						return
+					}
+					if !GetOpenState() {
 						return
 					}
 					out <- m
