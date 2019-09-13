@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/wangnengjie/A-share-spider/modules"
+	"github.com/wangnengjie/A-share-crawler/modules"
 )
 
 func main() {
