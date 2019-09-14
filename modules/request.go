@@ -1,7 +1,6 @@
 package modules
 
 import (
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strconv"
@@ -67,7 +66,7 @@ func getStockMsg(s string, id string) StockMsg {
 func getTime(date *string, t *string) int64 {
 	t_p, err := time.Parse("2006-01-02 15:04:05", *date+" "+*t)
 	if err != nil {
-		fmt.Printf("time parse err %s", err)
+		LogError(err.Error())
 	}
 	return t_p.Unix()
 }

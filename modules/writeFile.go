@@ -2,7 +2,6 @@ package modules
 
 import (
 	"encoding/csv"
-	"fmt"
 	"os"
 	"strconv"
 	"time"
@@ -21,29 +20,45 @@ func (v StockMsgs) Less(i, j int) bool {
 	return p < q
 }
 
-func WriteFile(in <-chan StockMsgs, t *int) {
-	f, err := os.Create("./data/" + time.Now().Format("2006-01-02_15-04-05") + ".csv")
+func WriteFile(in <-chan StockMsgs) {
+	name := time.Now().Format("2006-01-02_15-04-05") + ".csv"
+	f, err := os.Create("./data/" + name)
 	defer f.Close()
+	LogInfo("create file " + name)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
+		LogError(err.Error())
 		os.Exit(2)
 	}
 
 	writer := csv.NewWriter(f)
 	defer writer.Flush()
 
-	ticker := time.NewTicker(time.Duration(*t) * time.Minute)
+	// 无新数据则删除创建的文件
+	hasNewDate := false
+	// 检测是否收盘日，正常开盘五分钟后无新数据认为不开市，关闭爬虫
+	detect := time.NewTicker(5 * time.Minute)
+
 	for {
 		select {
-		case datas := <-in:
+		case datas, ok := <-in:
+			if !ok {
+				writer.Flush()
+				f.Close()
+				detect.Stop()
+				if !hasNewDate {
+					os.Remove("./data/" + name)
+					LogInfo("remove file " + name)
+				}
+				return
+			}
+			if !hasNewDate && len(datas) > 0 {
+				hasNewDate = true
+			}
 			writer.WriteAll(datas)
-		case <-ticker.C:
-			f.Close()
-			writer.Flush()
-			f, err = os.Create("./data/" + time.Now().Format("2006-01-02_15-04-05") + ".csv")
-			writer = csv.NewWriter(f)
+		case <-detect.C:
+			if !hasNewDate {
+				SetOpenState(false)
+			}
 		}
 	}
 }
-
-

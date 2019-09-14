@@ -15,6 +15,7 @@ func CollectMsg(in <-chan StockMsg, out chan<- StockMsgs) {
 			}
 			sort.Sort(collector)
 			out <- collector
+			close(out)
 			return
 		}
 		select {
