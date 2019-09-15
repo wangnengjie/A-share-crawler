@@ -35,6 +35,8 @@ func WriteFile(in <-chan StockMsgs) {
 
 	// 无新数据则删除创建的文件
 	hasNewDate := false
+	// 检测是否关闭爬虫
+	getNewInFiveMinute := false
 	// 检测是否收盘日，正常开盘五分钟后无新数据认为不开市，关闭爬虫
 	detect := time.NewTicker(5 * time.Minute)
 
@@ -54,9 +56,14 @@ func WriteFile(in <-chan StockMsgs) {
 			if !hasNewDate && len(datas) > 0 {
 				hasNewDate = true
 			}
+			if !getNewInFiveMinute && len(datas) > 0 {
+				getNewInFiveMinute = true
+			}
 			writer.WriteAll(datas)
 		case <-detect.C:
-			if !hasNewDate {
+			if getNewInFiveMinute {
+				getNewInFiveMinute = false
+			} else {
 				SetOpenState(false)
 			}
 		}

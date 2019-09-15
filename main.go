@@ -74,7 +74,7 @@ func start(ids *[]string, idMap *sync.Map, v *int, reget bool) {
 	}
 	// todo: 是否需要多个collector
 	go modules.CollectMsg(update, collect)
-	modules.WriteFile(collect)
+	go modules.WriteFile(collect)
 }
 
 func testFlag(v *int) {
