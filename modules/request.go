@@ -56,7 +56,7 @@ func Request(ids []string, idMap *sync.Map, out chan<- StockMsg) {
 func getStockMsg(s string, id string) StockMsg {
 	slice := strings.Split(s, ",")
 	return StockMsg{
-		id,
+		id[2:],
 		slice[3],
 		slice[8],
 		strconv.FormatInt(getTime(&slice[30], &slice[31]), 10),
