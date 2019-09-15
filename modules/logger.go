@@ -17,7 +17,7 @@ func init() {
 }
 
 func StartLog() {
-	logFile, err := os.OpenFile("./run.log", os.O_CREATE|os.O_APPEND, 0666)
+	logFile, err := os.OpenFile("./run.log", os.O_CREATE|os.O_APPEND, os.ModePerm)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s", err)
 		os.Exit(3)
