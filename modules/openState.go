@@ -30,8 +30,8 @@ func InitializeTimer(t5, t6, t7, t8 **time.Timer) {
 	t2 := t1.Add(2*time.Hour + 4*time.Minute)
 	// 12:58
 	t3 := t2.Add(1*time.Hour + 26*time.Minute)
-	// 15:02
-	t4 := t3.Add(2*time.Hour + 4*time.Minute)
+	// 15:32 大宗交易在15：00 - 15：30
+	t4 := t3.Add(2*time.Hour + 34*time.Minute)
 
 	switch {
 	case now.Before(t1):
